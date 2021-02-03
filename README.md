@@ -23,3 +23,8 @@ It should be noted that while the repository name is "netaddr-go" the package na
 
 # Documentation
 Available online [here](https://godoc.org/github.com/dspinhirne/netaddr-go).
+
+# Note
+This is a fork of [dspinhirne/netaddr-go](https://github.com/dspinhirne/netaddr-go) for
+personal experimentation. Please use the upstream project. This is not a stable
+go package.
