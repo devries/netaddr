@@ -29,3 +29,36 @@ func NewIPNetList(networks []string) (IPNetList, error) {
 func (list IPNetList) Summ() IPNetList {
 	return IPNetList{list.Net4List.Summ(), list.Net6List.Summ()}
 }
+
+// Be sure to Summ to make this efficient
+func (list IPNetList) Contains(other IPNet) bool {
+	switch nets := other.(type) {
+	case *IPv4Net:
+		return list.containsIPv4(nets)
+	case *IPv6Net:
+		return list.containsIPv6(nets)
+	}
+	return false
+}
+
+func (list IPNetList) containsIPv4(other *IPv4Net) bool {
+	for _, net := range list.Net4List {
+		related, how := net.Rel(other)
+		if related && how >= 1 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (list IPNetList) containsIPv6(other *IPv6Net) bool {
+	for _, net := range list.Net6List {
+		related, how := net.Rel(other)
+		if related && how >= 0 {
+			return true
+		}
+	}
+
+	return false
+}
