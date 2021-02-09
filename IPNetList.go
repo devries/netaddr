@@ -1,5 +1,9 @@
 package netaddr
 
+import (
+	"sort"
+)
+
 type IPNetList struct {
 	Net4List IPv4NetList
 	Net6List IPv6NetList
@@ -30,7 +34,7 @@ func (list IPNetList) Summ() IPNetList {
 	return IPNetList{list.Net4List.Summ(), list.Net6List.Summ()}
 }
 
-// Be sure to Summ to make this efficient
+// Be sure to Summ first, or it will not work
 func (list IPNetList) Contains(other IPNet) bool {
 	switch nets := other.(type) {
 	case *IPv4Net:
@@ -41,23 +45,55 @@ func (list IPNetList) Contains(other IPNet) bool {
 	return false
 }
 
+// The list must be sorted using Summ
 func (list IPNetList) containsIPv4(other *IPv4Net) bool {
-	for _, net := range list.Net4List {
-		related, how := net.Rel(other)
-		if related && how >= 1 {
+	listLength := list.Net4List.Len()
+	m := sort.Search(listLength, func(i int) bool {
+		cmp, _ := list.Net4List[i].Cmp(other)
+		if cmp == 1 {
 			return true
 		}
+		related, how := list.Net4List[i].Rel(other)
+		if related && how >= 0 {
+			return true
+		}
+		return false
+	})
+
+	if m == listLength {
+		return false
+	}
+
+	related, how := list.Net4List[m].Rel(other)
+	if related && how >= 0 {
+		return true
 	}
 
 	return false
 }
 
+// The list must be sorted using Summ
 func (list IPNetList) containsIPv6(other *IPv6Net) bool {
-	for _, net := range list.Net6List {
-		related, how := net.Rel(other)
+	listLength := list.Net6List.Len()
+	m := sort.Search(listLength, func(i int) bool {
+		cmp, _ := list.Net6List[i].Cmp(other)
+		if cmp == 1 {
+			return true
+		}
+		related, how := list.Net6List[i].Rel(other)
 		if related && how >= 0 {
 			return true
 		}
+		return false
+	})
+
+	if m == listLength {
+		return false
+	}
+
+	related, how := list.Net6List[m].Rel(other)
+	if related && how >= 0 {
+		return true
 	}
 
 	return false
